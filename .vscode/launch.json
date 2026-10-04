@@ -5,7 +5,7 @@
             "name": "執行壓力指數測試表",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/壓力指數測試表.py",
+            "program": "${workspaceFolder}/stress_gui.py",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
         },
