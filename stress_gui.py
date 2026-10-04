@@ -30,6 +30,9 @@ CARD_BORDER = "#C9D8EC"
 ROW_LINE = "#E6ECF3"
 NUMBER_BG = "#E8F0FA"
 HIGHLIGHT_BG = "#F3F7FC"
+LOCKED_FG = "#AAAAAA"
+LOCKED_BG = "#F0F2F5"
+LOCKED_SELECT = "#9AA3AE"  # 鎖定時已選按鈕的底色
 
 LEVEL_COLORS = ["#1E7E34", "#B88A00", "#D26900", "#C0392B"]  # 對應 LEVELS
 
@@ -59,6 +62,7 @@ class StressApp:
         self.root = root
         self.answers = []  # 每題的作答變數
         self.rows = []  # 每題的(題號標籤, 是按鈕, 否按鈕)
+        self.locked = False  # 已查看結果，鎖定作答
 
         root.title(APP_TITLE)
         try:
@@ -225,21 +229,34 @@ class StressApp:
         values = [answer.get() for answer in self.answers]
         return [None if value == NONE else value == YES for value in values]
 
-    # 更新按鈕顏色與作答進度
+    # 更新按鈕顏色、鎖定狀態與作答進度
     def _on_answer(self):
+        if self.locked:
+            style = dict(state=tk.DISABLED, cursor="arrow", bg=LOCKED_BG,
+                         selectcolor=LOCKED_SELECT)
+        else:
+            style = dict(state=tk.NORMAL, cursor="hand2", bg=CARD_BG,
+                         selectcolor=PRIMARY)
         for answer, row in zip(self.answers, self.rows):
             number, yes_button, no_button = row
             value = answer.get()
-            yes_button.config(fg="white" if value == YES else MUTED)
-            no_button.config(fg="white" if value == NO else MUTED)
+            for button, button_value in ((yes_button, YES), (no_button, NO)):
+                fg = "white" if value == button_value else MUTED
+                button.config(fg=fg, disabledforeground=(
+                    fg if fg == "white" else LOCKED_FG), **style)
             if value != NONE:
                 number.config(bg=NUMBER_BG, fg=PRIMARY)
 
         done = len(QUESTIONS) - len(unanswered(self.current_answers()))
-        self.progress_label.config(text=f"作答進度 {done} / {len(QUESTIONS)}")
+        if self.locked:
+            self.progress_label.config(text="已鎖定作答，按「重新作答」可重新測驗",
+                                       fg=ERROR)
+        else:
+            self.progress_label.config(
+                text=f"作答進度 {done} / {len(QUESTIONS)}", fg=MUTED)
         self.progress_bar.config(value=done)
 
-    # 計算並顯示結果
+    # 計算並顯示結果，全部作答後鎖定作答
     def submit(self):
         answers = self.current_answers()
         try:
@@ -248,6 +265,8 @@ class StressApp:
             self._show_error(str(error), unanswered(answers))
         else:
             self._show_result(result)
+            self.locked = True
+            self._on_answer()
 
     # 顯示測驗結果並標示等級
     def _show_result(self, result):
@@ -276,8 +295,9 @@ class StressApp:
                 label.config(bg=bg, font=(FONT, 10,
                                           "bold" if selected else "normal"))
 
-    # 清除作答與結果
+    # 清除作答與結果並解除鎖定
     def reset(self):
+        self.locked = False
         for answer, (number, _, _) in zip(self.answers, self.rows):
             answer.set(NONE)
             number.config(bg=NUMBER_BG, fg=PRIMARY)
