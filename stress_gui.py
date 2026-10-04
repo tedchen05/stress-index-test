@@ -6,6 +6,8 @@ Created on Thu May 30 21:50:30 2024
 
 壓力指數測試表視窗介面
 """
+import os
+import sys
 import tkinter as tk
 import webbrowser
 from tkinter import ttk
@@ -13,7 +15,9 @@ from tkinter import ttk
 from stress_core import (INTRO, LEVELS, QUESTIONS, SOURCE, SOURCE_URL,
                          StressError, evaluate, unanswered)
 
-APP_TITLE = "壓力指數測試表"
+APP_NAME = "壓力指數測試表"
+APP_TITLE = f"{APP_NAME} v2.0"
+ICON = os.path.join("images", "icon.ico")
 FONT = "微軟正黑體"
 
 PRIMARY = "#1F5FAD"
@@ -31,6 +35,12 @@ LEVEL_COLORS = ["#1E7E34", "#B88A00", "#D26900", "#C0392B"]  # 對應 LEVELS
 
 YES, NO, NONE = 1, 0, -1  # 作答變數的值
 SIDE_WIDTH = 320  # 右側欄寬度
+
+
+# 打包進exe的檔案路徑(exe執行時解壓到暫存資料夾)
+def resource_path(name):
+    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, name)
 
 
 # 建立白底卡片
@@ -51,6 +61,10 @@ class StressApp:
         self.rows = []  # 每題的(題號標籤, 是按鈕, 否按鈕)
 
         root.title(APP_TITLE)
+        try:
+            root.iconbitmap(resource_path(ICON))
+        except tk.TclError:
+            pass  # 找不到圖示時用預設圖示
         root.configure(bg=BG)
         root.resizable(False, False)
         self._setup_style()
@@ -79,7 +93,7 @@ class StressApp:
     def _build_header(self):
         header = tk.Frame(self.root, bg=BG, padx=20, pady=16)
         header.pack(fill="x")
-        tk.Label(header, text=APP_TITLE, font=(FONT, 20, "bold"), bg=BG,
+        tk.Label(header, text=APP_NAME, font=(FONT, 20, "bold"), bg=BG,
                  fg=PRIMARY).pack(anchor="w")
         tk.Label(header, text=INTRO, font=(FONT, 10), bg=BG, fg=MUTED,
                  justify="left", wraplength=880).pack(anchor="w")
