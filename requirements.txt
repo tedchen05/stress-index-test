@@ -1,0 +1,3 @@
+# 程式只用到 Python 內建的 tkinter，執行不需安裝其他套件
+# 打包成 exe 時才需要
+pyinstaller>=6.0
